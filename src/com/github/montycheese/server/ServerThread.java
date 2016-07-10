@@ -83,8 +83,8 @@ public class ServerThread implements Runnable {
 				String msg = null;
 				switch(commandCode){
 				case 1:
+					this.takeAndSendPhoto();
 					//response = Byte.toString(commandCode);
-					
 					break;
 				case 2:
 					//todo
@@ -123,10 +123,17 @@ public class ServerThread implements Runnable {
 	private void takeAndSendPhoto(){
 		String fileName = this.takePicture();
 		//if image success / video success notify client to prepare for transfer
-		if(img != null)
+		if(fileName != null){
+			//notify client to prepare to receive image
 			this.sendMessage("Ready");
+		}
 		if(this.checkClientReady() == true){
-			this.sendPicture();
+			this.sendPicture(fileName);
+		}
+		else{
+			System.out.println("Client not able to start receiving image.\n" + 
+								"Process terminating.");
+			
 		}
 		
 	}
@@ -164,8 +171,14 @@ public class ServerThread implements Runnable {
 
 		// save image to PNG file
 		try {
-			imgPath = this.IMAGE_PATH +  "img" + this.generateId() +  ".png";
-			ImageIO.write(img, "PNG", new File(imgPath));
+			//e.g. media/photos/img000000.png
+			imgPath = String.format("%simg%s%s",
+					this.IMAGE_PATH,
+					this.generateId(),
+					this.IMAGE_TYPE.toLowerCase()
+					);
+			//imgPath = this.IMAGE_PATH +  "img" + this.generateId() +   this.IMAGE_TYPE.toLowerCase();
+			ImageIO.write(img, this.IMAGE_TYPE, new File(imgPath));
 		} catch (IOException e) {
 			e.printStackTrace();
 			imgPath = null;
@@ -173,7 +186,7 @@ public class ServerThread implements Runnable {
 		return imgPath;
     			
     }
-    private String sendPicture(){
+    private String sendPicture(String fileName){
     	return null;
     }
     
@@ -219,5 +232,4 @@ public class ServerThread implements Runnable {
 	}
 	
 	
-}
-
+} 
