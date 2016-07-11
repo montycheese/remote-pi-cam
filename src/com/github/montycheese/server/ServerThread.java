@@ -32,16 +32,15 @@ public class ServerThread implements Runnable {
 	private byte SEND_PICTURE = 1;
 	private byte STREAM_VIDEO = 2;
 	private final String IMAGE_TYPE = "PNG";
-	private final String IMAGE_PATH = "";
-	private final int TERMINATE_INTERVAL = 1000;
+	private final String IMAGE_PATH = "media/photo";
 	private final int BUF_SIZE = 16*1024;
-	private final int HEADER_OFFSET = 3;
 	private final byte[] VALID = new byte[]{1,1,1}, INVALID = new byte[]{0,0,0};
 	
 	/**
-     * @param client socket, server socket, and hashmap that contains the IDs to terminate processes get and put
-     * @return error connecting if server is already running or initializes client socket, hashmap for IDs, and current directoryy
-     * */
+	 * 
+	 * @param clientSocket
+	 * @param serverSocket
+	 */
 	public ServerThread(Socket clientSocket, ServerSocket serverSocket){
 		this.clientSocket = clientSocket;
 		this.currentWorkingDir = new File(System.getProperty("user.dir"));
@@ -62,7 +61,7 @@ public class ServerThread implements Runnable {
 	
 	/**
 	 * Automatically called when the thread is created. This method handles the communication between
-	 * client and server until the client enters the quit command. The thread dies soonthereafter. 
+	 * client and server until the client enters the quit command. The thread dies soon there after. 
 	 */
 	@Override
 	public void run(){
@@ -70,8 +69,8 @@ public class ServerThread implements Runnable {
 		System.out.println("Running thread!");
 		
 		try {
-			//checks commands inputted by user and parses it
-			String command = "", response = null;
+			//checks commands inputed by user and parses it
+			String command = "";
 			while((command = this.br.readLine()) != null){
 				if(command.equalsIgnoreCase("quit")) {
 					this.out.println("Goodbye, Exiting\n");
@@ -80,19 +79,19 @@ public class ServerThread implements Runnable {
 				
 				//parse client's request
 				byte commandCode = this.parse(command);
-				String msg = null;
+				
 				switch(commandCode){
 				case 1:
 					this.takeAndSendPhoto();
 					//response = Byte.toString(commandCode);
 					break;
 				case 2:
-					//todo
+					//todo video stream
 					break;
 				case 0:
 					//send client that there was an error
 				default:
-					//response = Byte.toString(commandCode);
+					this.sendMessage("Error");
 					break;
 				}
 				
@@ -108,36 +107,17 @@ public class ServerThread implements Runnable {
 			e.printStackTrace();
 		}
 		finally{
-			try {
-			    //close client conn.
-			    this.clientSocket.close();
-			} catch (IOException e) {
-				System.out.println("Error closing client socket");
-			}
+			if(this.clientSocket != null)
+				try {
+					this.clientSocket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			
 			
 		}
 		
 	}
-	
-	
-	private void takeAndSendPhoto(){
-		String fileName = this.takePicture();
-		//if image success / video success notify client to prepare for transfer
-		if(fileName != null){
-			//notify client to prepare to receive image
-			this.sendMessage("Ready");
-		}
-		if(this.checkClientReady() == true){
-			this.sendPicture(fileName);
-		}
-		else{
-			System.out.println("Client not able to start receiving image.\n" + 
-								"Process terminating.");
-			
-		}
-		
-	}
-	
 	
 	/**
 	 * Parses the client's command and returns the response string
@@ -159,8 +139,49 @@ public class ServerThread implements Runnable {
 		}
 		return this.INVALID_CMD;
 	}
+	
+	/**
+	 * Takes a photo from the webcam and sends it to the requesting client.
+	 */
+	private void takeAndSendPhoto(){
+		String fileName = null;
+		try {
+			fileName = this.takePicture();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Error taking image");
+		}
+		//if image success / video success notify client to prepare for transfer
+		if(fileName != null){
+			//notify client to prepare to receive image by sending file type
+			this.sendMessage(this.IMAGE_TYPE);
+		}
+		else{
+			this.sendMessage("error");
+		}
+		if(this.checkClientReady() == true){
+			try {
+				//send picture
+				this.sendPicture(fileName);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.out.println("Error sending image");
+			}
+		}
+		else{
+			System.out.println("Client not able to start receiving image.\n" + 
+								"Process terminating.");
+			
+		}
+		
+	}
     
-    private String takePicture(){
+	/**
+	 * Calls the sarxos webcam library to take a photo with the webcam and saves it to file.
+	 * @return String imgPath the path to the image that is stored on the server.
+	 * @throws IOException
+	 */
+    private String takePicture() throws IOException{
     	// get default webcam and open it
 		Webcam webcam = Webcam.getDefault();
 		webcam.open();
@@ -170,24 +191,45 @@ public class ServerThread implements Runnable {
 		String imgPath = null;
 
 		// save image to PNG file
-		try {
-			//e.g. media/photos/img000000.png
-			imgPath = String.format("%simg%s%s",
-					this.IMAGE_PATH,
-					this.generateId(),
-					this.IMAGE_TYPE.toLowerCase()
-					);
-			//imgPath = this.IMAGE_PATH +  "img" + this.generateId() +   this.IMAGE_TYPE.toLowerCase();
-			ImageIO.write(img, this.IMAGE_TYPE, new File(imgPath));
-		} catch (IOException e) {
-			e.printStackTrace();
-			imgPath = null;
-		}
+		//e.g. media/photos/img000000.png
+		imgPath = String.format("%simg%s.%s",
+				this.IMAGE_PATH,
+				this.generateId(),
+				this.IMAGE_TYPE.toLowerCase()
+				);
+		//imgPath = this.IMAGE_PATH +  "img" + this.generateId() +   this.IMAGE_TYPE.toLowerCase();
+		ImageIO.write(img, this.IMAGE_TYPE, new File(imgPath));
+	
 		return imgPath;
     			
     }
-    private String sendPicture(String fileName){
-    	return null;
+    
+    /**
+     * Sends the image that was just taken on the webcam to the client whom requested it.
+     * @param fileName
+     * @throws IOException
+     */
+    private void sendPicture(String fileName) throws IOException{
+    	File img = null;
+	
+		img = new File(fileName);
+		if (!img.exists()){
+			throw new FileNotFoundException();
+		}
+		
+		//send file
+		byte[] buffer = new byte[this.BUF_SIZE];
+		int count;
+		FileInputStream fileInputStream = new FileInputStream(img);
+		OutputStream fileOut = this.clientSocket.getOutputStream();
+		//send file
+		while((count = fileInputStream.read(buffer)) > 0){
+			fileOut.write(buffer, 0, count);
+		}
+		fileInputStream.close();
+		fileOut.flush();
+		this.clientSocket.shutdownOutput();
+		System.out.println("Sending of file: " + fileName + " complete.");
     }
     
     //todo determine return type
@@ -203,7 +245,7 @@ public class ServerThread implements Runnable {
     	String response = null;
     	try{
     		response = this.br.readLine();
-			if (response.equalsIgnoreCase("Ready")){
+			if (response.equalsIgnoreCase("ready")){
 				return true;
 			}
     	}

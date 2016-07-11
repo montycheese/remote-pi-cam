@@ -1,10 +1,8 @@
 package com.github.montycheese.server;
 
-import java.util.HashMap;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -107,7 +105,7 @@ public class Server {
 		boolean DEVELOPMENT = true;
 		if (DEVELOPMENT){
 			System.out.println("Starting Server");
-			Server server = new Server();
+			Server server = new Server("localhost", 60000);
 			server.run();
 		}
 		else{
