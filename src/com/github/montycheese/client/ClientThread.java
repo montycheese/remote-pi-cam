@@ -32,8 +32,8 @@ public class ClientThread extends Thread {
     private InputStream in;
     private BufferedReader br;
     private PrintWriter out;
-    private final String IMAGE_PATH = "media/photo";
-    private final String VIDEO_PATH = "media/video";
+    private final String IMAGE_PATH = "media/photo/";
+    private final String VIDEO_PATH = "media/video/";
 	private final int BUF_SIZE = 16*1024;
     private final String[] IMAGE_EXTS = new String[]{ "PNG", "JPG", "JPEG", "GIF" };
 
@@ -143,7 +143,7 @@ public class ClientThread extends Thread {
 					"%simg%s.%s", 
 					this.IMAGE_PATH, 
 					this.generateId(), 
-					imgType
+					imgType.toLowerCase()
 				);
 			this.sendMessage("ready");
 		    //receive image from server and write it to a file

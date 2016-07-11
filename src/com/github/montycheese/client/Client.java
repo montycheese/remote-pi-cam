@@ -27,7 +27,7 @@ public class Client {
 	 * */
 	public Client(){
 		this.connectPort = 60000;
-		this.hostName = "localhost";
+		this.hostName = "68.190.35.142";
 	}
 	/**
 	 * this method creates a socket, and listens to commands given by the user. Read in from scanner and

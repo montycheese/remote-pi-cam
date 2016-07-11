@@ -32,7 +32,7 @@ public class ServerThread implements Runnable {
 	private byte SEND_PICTURE = 1;
 	private byte STREAM_VIDEO = 2;
 	private final String IMAGE_TYPE = "PNG";
-	private final String IMAGE_PATH = "media/photo";
+	private final String IMAGE_PATH = "media/photo/";
 	private final int BUF_SIZE = 16*1024;
 	private final byte[] VALID = new byte[]{1,1,1}, INVALID = new byte[]{0,0,0};
 	
