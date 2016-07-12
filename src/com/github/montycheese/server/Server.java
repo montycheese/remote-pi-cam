@@ -111,6 +111,7 @@ public class Server {
 		else{
 			System.out.println("Starting Server");
 			Server server = new Server();
+			server.run();
 		}
 		
 	}

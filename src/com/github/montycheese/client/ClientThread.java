@@ -157,10 +157,7 @@ public class ClientThread extends Thread {
 			fos.flush();
 			fos.close();
 			//notify user of successful transfer
-			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-			//get current date time with Date()
-			Date date = new Date();
-			System.out.println("Image successfully received at " + dateFormat.format(date) + "\nSaved as " + fileName);
+			System.out.println("Image successfully received at " + this.getCurrentDateTime() + "\nSaved as " + fileName);
 		}
 		else if(sendStatus.equalsIgnoreCase("error")){
 			System.out.println("Server can not send photos at this time.");
@@ -227,6 +224,7 @@ public class ClientThread extends Thread {
 	 * Flag to show that a file is deleted. Checks to see if file is in existence
 	 * and if so, deletes files. Returns true is file is successfully gone.
 	*/
+	@SuppressWarnings("unused")
 	private boolean delete(String filename){
 		File file = new File(filename);
 		if (file.exists()){
@@ -250,4 +248,10 @@ public class ClientThread extends Thread {
 		
 		return id;
 	}
+	 private String getCurrentDateTime(){
+			DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			//get current date time with Date()
+			Date date = new Date();
+			return dateFormat.format(date);
+	    }
 }

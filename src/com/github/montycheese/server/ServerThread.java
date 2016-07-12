@@ -13,6 +13,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 
@@ -24,7 +27,6 @@ import com.github.sarxos.webcam.Webcam;
 public class ServerThread implements Runnable {
 	
 	private Socket clientSocket;
-	private File currentWorkingDir;
 	private PrintWriter out;
 	private BufferedReader br;
 	private InputStream in;
@@ -34,7 +36,6 @@ public class ServerThread implements Runnable {
 	private final String IMAGE_TYPE = "PNG";
 	private final String IMAGE_PATH = "media/photo/";
 	private final int BUF_SIZE = 16*1024;
-	private final byte[] VALID = new byte[]{1,1,1}, INVALID = new byte[]{0,0,0};
 	
 	/**
 	 * 
@@ -43,7 +44,6 @@ public class ServerThread implements Runnable {
 	 */
 	public ServerThread(Socket clientSocket, ServerSocket serverSocket){
 		this.clientSocket = clientSocket;
-		this.currentWorkingDir = new File(System.getProperty("user.dir"));
 		//out is the message buffer to return to the client
 		try {
 			this.out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -66,7 +66,7 @@ public class ServerThread implements Runnable {
 	@Override
 	public void run(){
 		//do tasks until no more, then let thread die
-		System.out.println("Running thread!");
+		System.out.println("Processing client request!");
 		
 		try {
 			//checks commands inputed by user and parses it
@@ -149,7 +149,7 @@ public class ServerThread implements Runnable {
 			fileName = this.takePicture();
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("Error taking image");
+			System.out.println("Error taking image.");
 		}
 		//if image success / video success notify client to prepare for transfer
 		if(fileName != null){
@@ -229,11 +229,22 @@ public class ServerThread implements Runnable {
 		fileInputStream.close();
 		fileOut.flush();
 		this.clientSocket.shutdownOutput();
-		System.out.println("Sending of file: " + fileName + " complete.");
+
+		System.out.println("Sending of file: " + fileName + " at " + this.getCurrentDateTime() + " complete.");
+		//TODO possibly remove image from server once sent to save space.
+		//this.delete(fileName);
     }
     
-    //todo determine return type
-    private String streamVideo(){
+    private String getCurrentDateTime(){
+		DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+		//get current date time with Date()
+		Date date = new Date();
+		return dateFormat.format(date);
+    }
+    
+    @SuppressWarnings("unused")
+	private String streamVideo(){
+    	//TODO
     	return null;
     }
     
@@ -256,6 +267,18 @@ public class ServerThread implements Runnable {
     	
     }
   
+    /**
+	 * 
+	 * Flag to show that a file is deleted. Checks to see if file is in existence
+	 * and if so, deletes files. Returns true is file is successfully gone.
+	*/
+	private boolean delete(String filename){
+		File file = new File(filename);
+		if (file.exists()){
+			file.delete();
+		}
+		return !file.exists();
+	}
 
 	/**
      * method to generate a 6-digit ID

@@ -43,7 +43,7 @@ public class Client {
 		
 		//read commands from sys.in
 		String input = null;
-		System.out.println("What would you like to do?\n Type Picture or Video");
+		System.out.println("What would you like to do?\nType Picture, Video or Quit to exit.");
 		while(true){
 			System.out.print(">> ");	
 			input = this.scanner.nextLine();
@@ -58,7 +58,7 @@ public class Client {
 			catch(InterruptedException ie){
 				ie.printStackTrace();
 			}
-			if(input.equals("quit")) break;
+			if(input.equalsIgnoreCase("quit")) break;
 			
 		}
 		if(this.clientSocket != null){
