@@ -27,7 +27,7 @@ public class Client {
 	 * */
 	public Client(){
 		this.connectPort = 60000;
-		this.hostName = "68.190.35.142";
+		this.hostName = "192.168.1.35";//"68.190.35.142";
 	}
 	/**
 	 * this method creates a socket, and listens to commands given by the user. Read in from scanner and
@@ -72,8 +72,8 @@ public class Client {
 		boolean DEVELOPMENT = true;
 		if(DEVELOPMENT){
 			Client client = new Client();
-			System.out.println("Running Pi Cam!");
 			try {
+				System.out.println("Running Pi Cam!");
 				client.run();
 			} catch (UnknownHostException e) {
 				e.printStackTrace();

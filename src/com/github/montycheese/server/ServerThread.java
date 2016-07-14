@@ -76,7 +76,7 @@ public class ServerThread implements Runnable {
 					this.out.println("Goodbye, Exiting\n");
 					break;
 				}
-				
+				System.out.println("debug");
 				//parse client's request
 				byte commandCode = this.parse(command);
 				
