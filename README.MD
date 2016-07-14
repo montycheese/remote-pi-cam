@@ -8,7 +8,7 @@ To run client:
 $java -cp bin/ com/github/montycheese/client/Client
 
 To run webcam server:
-$java -cp bin/ com/github/montycheese/server/Server
+$java -cp bin/:dependencies/* com/github/montycheese/server/Server
 
 To shutdown client: 
 type 'quit'
